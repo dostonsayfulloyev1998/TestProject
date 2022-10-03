@@ -14,16 +14,12 @@ class DatabaseSeeder extends Seeder
 
     public function run()
     {
-//        DB::table("products")->delete();
-//        DB::table("materials")->delete();
-//       $this->call([
+
+//        $this->call([
 //           ProductSeeder::class,
-//           MaterialSeeder::class
+//           MaterialSeeder::class,
+//           ProductMaterialSeeder::class,
+//           OmborxonaSeeder::class
 //       ]);
-
-//        $this->call(ProductMaterialSeeder::class);
-
-//        $this->call(OmborxonaSeeder::class);
-
     }
 }
