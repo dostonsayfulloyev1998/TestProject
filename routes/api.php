@@ -20,56 +20,41 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::post('/product-material',function (Request $request){
-    $code = $request->code;
-    $soni = $request->soni;
+
+    $product = $request->products;
+    $p = explode(",",$product);
+
+    foreach ($p as $item){
+        $a = explode(" ",$item);
+        $r['product_code'] = $a[0];
+        $r['product_qty'] = $a[1];
+        $products[] = $r;
+    }
+
+    foreach ($products as $product){
+        $pro[] = DB::select("SELECT p.id as p_id , p.`code` as p_code, a.m_id, a.miqdori*? as miqdori  from products p INNER JOIN
+      (SELECT p_m.product_id as p_id, p_m.material_id as m_id, p_m.miqdori from product_materials p_m INNER JOIN materials m on
+      p_m.material_id = m.id) a on a.p_id = p.id where p.code = ? ",[$product['product_qty'], $product['product_code']]);
+
+        $omborxona = DB::select("SELECT o.id as o_id,m.id as m_id, m.`name` as m_name,miqdori, price from omborxona o INNER JOIN materials m on o.material_id = m.id");
+        $tovar=[];
+
+        foreach ($omborxona as $ombor){
+            $w['warehouse_id'] = $ombor->o_id;
+            $w['material_name']= $ombor->m_name;
+            $w['qty']= $ombor->miqdori;
+            $w['price']= $ombor->price;
+
+            $tovar[]= $w;
+        }
 
 
-//    $product = \App\Models\Product::where(['code'=>$code])->get();
-    $ids = DB::table('products')->select("id")->where(['code'=>$code])->get();
 
-    $result = DB::select("SELECT a.m_miqdori*30 as miqdori from products p INNER JOIN
- (SELECT m.`name` as m_name, p_m.miqdori as m_miqdori, p_m.product_id as p_id from product_materials p_m INNER JOIN materials m on p_m.material_id = m.id) a
- on p.id=a.p_id WHERE p.`code`=$code");
-
-
-//    $omborxona = DB::select("SELECT sum(miqdori) as miqdori from omborxona o INNER JOIN (SELECT p.`code` as p_code,p_m.material_id as m_id  from products p INNER JOIN product_materials p_m on p.id = p_m.product_id) a
-//on a.m_id = o.material_id  where a.p_code =$code GROUP BY material_id");
-
-    $omborxona = DB::select("SELECT o.id,m.id, m.`name` as name,miqdori, price from omborxona o INNER JOIN materials m on o.material_id = m.id
-");
-
-    $material= DB::select("SELECT material_id,`name`,miqdori*$soni as jami from product_materials p_m INNER JOIN materials m on p_m.material_id = m.id WHERE product_id=1");
-
-$result =[];
-
-    foreach ($omborxona as $item){
-         foreach ($material as $m){
-             if ($m->jami <=$item->miqdori){
-                 $result[] = [
-                   'warehouse_id'=>$item->id,
-                     'material_name'=>$item->name,
-                     'qty'=>$item->miqdori,
-                     'price'=>$item->price
-                 ];
-
-                 break;
-             }
-             else{
-                 $result[] = [
-                     'warehouse_id'=>$item->id,
-                     'material_name'=>$item->name,
-                     'qty'=>$item->miqdori,
-                     'price'=>$item->price
-                 ];
-
-                 $item->miqdori-=$m->jami;
-                 break;
-             }
-         }
     }
 
 
-    return response()->json($result);
+
+    return response()->json($tovar);
 
 });
 
